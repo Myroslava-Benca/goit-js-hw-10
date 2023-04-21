@@ -1,7 +1,7 @@
 import './css/styles.css';
 import  fetchCountries from './fetchCountries.js';
 
-// const DEBOUNCE_DELAY = 300;
+const DEBOUNCE_DELAY = 300;
 
 let name = '';
 
@@ -19,13 +19,13 @@ function onSearch(evt){
 
     fetchCountries()
         .then(renderCountry)
-        .catch(error)
+        // .catch(error)
 }
 
 function renderCountry({name, capital , population , flags , languages}) {
     return ` <ul>
     <li> 
-    <img src =${flags.svg} alt='flags of ${name.official}' width=60 height=40/>
+    <img src =${flags} alt='flags of ${name}' width=60 height=40/>
      </li>
      </ul>
      <ul>
