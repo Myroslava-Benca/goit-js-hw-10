@@ -1,5 +1,5 @@
 import './css/styles.css';
-import  fetchCountries from './fetchCountries.js';
+import { fetchCountries } from './fetchCountries.js';
 
 const DEBOUNCE_DELAY = 300;
 
@@ -19,7 +19,7 @@ function onSearch(evt){
 
     fetchCountries()
         .then(renderCountry)
-        // .catch(error)
+        .catch(error => error)
 }
 
 function renderCountry({name, capital , population , flags , languages}) {
