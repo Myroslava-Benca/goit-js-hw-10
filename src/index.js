@@ -1,66 +1,54 @@
-import './css/styles.css';
-import { fetchCountries } from './fetchCountries.js';
-import debounce from 'lodash.debounce';
 import Notiflix from 'notiflix';
+import { fetchPictures } from './js/fetchPicturs';
 
-const DEBOUNCE_DELAY = 300;
+const formEl = document.querySelector('.search-form');
+const userInput = formEl.elements.searchQuery;
+const pictureGallery = document.querySelector('.gallery');
+const loadMoreBtn = document.querySelector('.load-more');
+const BASE_URL = ` https://pixabay.com/api/?`;
+let numberPage = 1;
+let query = '';
+const totalItemsPerPage = 40;
+loadMoreBtn.classList.add('is-hidden');
 
-const input = document.querySelector("#search-box");
-const list = document.querySelector(".country-list");
-const div = document.querySelector(".country-info");
+const PARAMS = new URLSearchParams({
+  q: query,
+  image_type: 'photo',
+  orientation: 'horizontal',
+  safesearch: true,
+  key: '43559338-49e51b38628b18648a05e4f59',
+  page: 1,
+  per_page: totalItemsPerPage,
+});
 
-let searchCountryName = '';
+formEl.addEventListener('submit', onSearchImages);
 
-input.addEventListener("input", debounce(onInputChange, DEBOUNCE_DELAY));
+function onSearchImages(e) {
+  e.preventDefault();
+  loadMoreBtn.classList.add('is-hidden');
+  numberPage = 1;
+  PARAMS.set('page', numberPage);
+  pictureGallery.innerHTML = '';
+  query = userInput.value;
+  PARAMS.set('q', query);
+  const url = BASE_URL + PARAMS;
 
-function onInputChange() {
-    searchCountryName = input.value.trim();
-    if (searchCountryName === '') {
-        clearAll();
-        return;
-    } else fetchCountries(searchCountryName).then(countryNames => {
-        if (countryNames.length < 2) {
-            createCountrieCard(countryNames); 
-        } else if (countryNames.length < 10 && countryNames.length > 1) {
-            createCountrieList(countryNames);
-        } else {
-            clearAll();
-            Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
-        };
-    })
-        .catch(() => {
-        clearAll();
-        Notiflix.Notify.failure('Oops, there is no country with that name.');
-    });
-};
+  if (!query) {
+    pictureGallery.innerHTML = '';
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    loadMoreBtn.classList.add('is-hidden');
+    return;
+  }
+  fetchPictures(query, url, numberPage);
+  formEl.reset();
+}
+loadMoreBtn.addEventListener('click', onLoadMoreImage);
 
-function createCountrieCard(country) {
-    clearAll();
-    const c = country[0];
-    const readyCard = `<div class="country-card">
-        <div class="country-card--header">
-            <img src="${c.flags.svg}" alt="Country flag" width="55", height="35">
-            <h2 class="country-card--name"> ${c.name.official}</h2>
-        </div>
-            <p class="country-card--field">Capital: <span class="country-value">${c.capital}</span></p>
-            <p class="country-card--field">Population: <span class="country-value">${c.population}</span></p>
-            <p class="country-card--field">Languages: <span class="country-value">${Object.values(c.languages).join(',')}</span></p>
-    </div>`
-    div.innerHTML = readyCard;
-};
-
-function createCountrieList(country) {
-    clearAll();
-    const readyList = country.map((c) => 
-        `<li class="country-list--item">
-            <img src="${c.flags.svg}" alt="Country flag" width="40", height="30">
-            <span class="country-list--name">${c.name.official}</span>
-        </li>`)
-        .join("");
-    list.insertAdjacentHTML('beforeend', readyList);
-};
-
-function clearAll() {
-  list.innerHTML = '';
-  div.innerHTML = '';
-};
+function onLoadMoreImage() {
+  numberPage += 1;
+  PARAMS.set('page', numberPage);
+  const url = BASE_URL + PARAMS;
+  fetchPictures(query, url, numberPage);
+}
